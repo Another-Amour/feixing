@@ -18,7 +18,7 @@ export interface Pet {
   attack: number;
   defense: number;
   speed?: number;
-  type?: 'fire' | 'water' | 'grass' | 'normal';
+  type?: 'fire' | 'water' | 'grass' | 'thunder' | 'normal';
   isStarter?: boolean;
   equipment?: PetEquipment;
 }
