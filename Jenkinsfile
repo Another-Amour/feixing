@@ -4,7 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME = 'pixel-farm-game'
         IMAGE_TAG = "${BUILD_NUMBER}"
-        CONTAINER_PORT = '8080'
+        NAMESPACE = 'default'
     }
     
     stages {
@@ -16,50 +16,41 @@ pipeline {
         
         stage('Build Docker Image') {
             steps {
-                script {
-                    docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
-                }
+                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest"
             }
         }
         
-        stage('Stop Old Container') {
+        stage('Deploy to K8s') {
             steps {
-                sh '''
-                    docker stop ${IMAGE_NAME} || true
-                    docker rm ${IMAGE_NAME} || true
-                '''
-            }
-        }
-        
-        stage('Run Container') {
-            steps {
-                sh '''
-                    docker run -d \
-                        --name ${IMAGE_NAME} \
-                        --restart unless-stopped \
-                        -p ${CONTAINER_PORT}:80 \
-                        ${IMAGE_NAME}:${IMAGE_TAG}
-                '''
+                sh """
+                    # 更新镜像tag
+                    sed -i 's|image:.*|image: ${IMAGE_NAME}:${IMAGE_TAG}|g' k8s/deployment.yaml
+                    
+                    # 部署
+                    kubectl apply -f k8s/deployment.yaml -n ${NAMESPACE}
+                    
+                    # 强制更新Pod
+                    kubectl rollout restart deployment/pixel-farm-game -n ${NAMESPACE} || true
+                """
             }
         }
         
         stage('Cleanup Old Images') {
             steps {
-                sh '''
-                    docker images ${IMAGE_NAME} --format "{{.Tag}}" | \
-                    grep -v ${IMAGE_TAG} | \
-                    xargs -I {} docker rmi ${IMAGE_NAME}:{} || true
-                '''
+                sh """
+                    docker images ${IMAGE_NAME} --format '{{.Tag}}' | grep -v '${IMAGE_TAG}' | grep -v 'latest' | xargs -I {} docker rmi ${IMAGE_NAME}:{} || true
+                """
             }
         }
     }
     
     post {
         success {
-            echo "部署成功！访问 http://YOUR_SERVER:${CONTAINER_PORT}"
+            echo "部署成功！访问 http://服务器IP:30080"
         }
         failure {
-            echo '部署失败，请检查日志'
+            echo '部署失败'
         }
     }
 }

@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pixel-farm-game
+  labels:
+    app: pixel-farm-game
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pixel-farm-game
+  template:
+    metadata:
+      labels:
+        app: pixel-farm-game
+    spec:
+      containers:
+        - name: pixel-farm-game
+          image: pixel-farm-game:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 80
+          resources:
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+            requests:
+              cpu: "100m"
+              memory: "64Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pixel-farm-game-svc
+spec:
+  type: NodePort
+  selector:
+    app: pixel-farm-game
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30080
