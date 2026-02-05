@@ -21,6 +21,11 @@ export class BootScene extends Phaser.Scene {
       progressBar.fillRect(width / 2 - 150, height / 2 - 15, 300 * value, 30);
     });
 
+    // 加载宠物图片
+    this.load.image('pet_fire_fox', 'assets/pets/af666c07642a4df2906928ebfa0af4c2.png');
+    this.load.image('pet_thunder_lizard', 'assets/pets/80937e67f10445f3878df053acbead7e.png');
+    this.load.image('pet_ice_ball', 'assets/pets/860ccb5194494cbd8f1078fc4bb3853a.png');
+
     // 生成临时像素素材
     this.createPlaceholderAssets();
   }

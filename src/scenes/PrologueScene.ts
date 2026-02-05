@@ -10,6 +10,7 @@ interface StarterPet {
   lore: string;
   color: number;
   accentColor: number;
+  image: string;
   stats: { attack: number; defense: number; speed: number };
 }
 
@@ -23,37 +24,40 @@ export class PrologueScene extends Phaser.Scene {
 
   starterPets: StarterPet[] = [
     {
-      id: 'shadow_wolf',
-      name: '烬狼·夜焰',
-      title: '暗夜猎手',
+      id: 'fire_fox',
+      name: '小焰狸',
+      title: '火苗小精灵',
       type: 'fire',
-      description: '来自深渊火山的孤狼，浑身燃烧着黑色的火焰',
-      lore: '传说它是被遗弃在火山口的幼狼，吞噬了地心之火后获得了不灭的黑焰之力。它的眼眸如同燃烧的余烬，能看穿一切黑暗。',
-      color: 0x1a1a2e,
+      description: '尾巴上燃烧着小火苗的可爱狐狸，对世界充满好奇',
+      lore: '小焰狸是火山脚下最常见的灵兽，它们天性温顺，喜欢跟随旅行者。虽然战斗力不强，但忠诚度极高，是新手驭灵师的最佳伙伴。',
+      color: 0x2a1a1a,
       accentColor: 0xff6b35,
-      stats: { attack: 14, defense: 6, speed: 10 }
+      image: 'af666c07642a4df2906928ebfa0af4c2.png',
+      stats: { attack: 8, defense: 5, speed: 7 }
     },
     {
-      id: 'storm_dragon',
-      name: '霆龙·苍雷',
-      title: '雷霆之子',
+      id: 'thunder_lizard',
+      name: '雷仔',
+      title: '电气小顽童',
       type: 'thunder',
-      description: '诞生于雷暴云层的幼龙，周身环绕着紫色闪电',
-      lore: '在千年一遇的雷暴之夜，一道紫雷击中了龙族的神殿，苍雷便从雷光中诞生。它虽年幼，却已掌握操控雷电的力量。',
-      color: 0x2d1b4e,
+      description: '头顶触角会放电的小蜥蜴，性格活泼调皮',
+      lore: '雷仔经常出没在雷雨天气后的草丛中，它们喜欢用触角放出小电花来吓唬路人。虽然有点淘气，但一旦认主就会变得非常听话。',
+      color: 0x1a1a2e,
       accentColor: 0xa855f7,
-      stats: { attack: 11, defense: 7, speed: 12 }
+      image: '80937e67f10445f3878df053acbead7e.png',
+      stats: { attack: 7, defense: 6, speed: 9 }
     },
     {
-      id: 'ice_phoenix',
-      name: '凰羽·寒星',
-      title: '极光守护者',
+      id: 'ice_ball',
+      name: '冰绒球',
+      title: '雪原萌物',
       type: 'water',
-      description: '栖息于极北冰原的神鸟，羽翼闪耀着极光的色彩',
-      lore: '寒星是冰凤凰一族最后的血脉，它的羽毛能折射出极光的七彩光芒。虽然外表冷艳，内心却温柔而坚定，誓要守护认定的主人。',
+      description: '圆滚滚的雪球精灵，软萌可爱让人忍不住想抱',
+      lore: '冰绒球生活在北方的雪原，它们的身体永远保持着舒适的凉爽温度。性格温柔害羞，但会用冰霜保护认定的主人。',
       color: 0x0c1929,
       accentColor: 0x38bdf8,
-      stats: { attack: 9, defense: 11, speed: 10 }
+      image: '860ccb5194494cbd8f1078fc4bb3853a.png',
+      stats: { attack: 5, defense: 8, speed: 6 }
     }
   ];
 
@@ -302,9 +306,10 @@ export class PrologueScene extends Phaser.Scene {
     portraitBg.fillStyle(0x000000, 0.4);
     portraitBg.fillRoundedRect(-90, -160, 180, 140, 8);
 
-    // 绘制宠物形象 - 直接在卡片位置绘制
-    const petImage = this.add.graphics();
-    this.drawPetPortrait(petImage, pet, 0, -90);
+    // 宠物图片
+    const petImageKey = `pet_${pet.id}`;
+    const petImage = this.add.image(0, -90, petImageKey);
+    petImage.setDisplaySize(120, 120);
 
     // 名字
     const nameText = this.add.text(0, 5, pet.name, {
@@ -540,10 +545,10 @@ export class PrologueScene extends Phaser.Scene {
     boxBg.lineStyle(2, pet.accentColor, 0.8);
     boxBg.strokeRoundedRect(-200, -150, 400, 300, 16);
 
-    // 宠物小图
-    const miniPortrait = this.createPetPortrait(pet);
-    miniPortrait.setScale(0.6);
-    miniPortrait.setPosition(0, -70);
+    // 宠物图片
+    const petImageKey = `pet_${pet.id}`;
+    const miniPortrait = this.add.image(0, -70, petImageKey);
+    miniPortrait.setDisplaySize(80, 80);
 
     const title = this.add.text(0, 10, `与 ${pet.name} 缔结契约？`, {
       fontSize: '22px',
@@ -633,10 +638,10 @@ export class PrologueScene extends Phaser.Scene {
 
     this.createAnimatedBackground();
 
-    // 宠物形象
-    const petPortrait = this.createPetPortrait(pet);
-    petPortrait.setPosition(400, 200);
-    petPortrait.setScale(1.5);
+    // 宠物图片
+    const petImageKey = `pet_${pet.id}`;
+    const petPortrait = this.add.image(400, 200, petImageKey);
+    petPortrait.setDisplaySize(180, 180);
 
     // 发光效果
     const glow = this.add.graphics();
