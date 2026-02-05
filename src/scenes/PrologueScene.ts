@@ -302,9 +302,9 @@ export class PrologueScene extends Phaser.Scene {
     portraitBg.fillStyle(0x000000, 0.4);
     portraitBg.fillRoundedRect(-90, -160, 180, 140, 8);
 
-    // 绘制宠物形象
-    const petImage = this.createPetPortrait(pet);
-    petImage.setPosition(0, -90);
+    // 绘制宠物形象 - 直接在卡片位置绘制
+    const petImage = this.add.graphics();
+    this.drawPetPortrait(petImage, pet, 0, -90);
 
     // 名字
     const nameText = this.add.text(0, 5, pet.name, {
@@ -316,7 +316,7 @@ export class PrologueScene extends Phaser.Scene {
     // 称号
     const titleText = this.add.text(0, 30, `「${pet.title}」`, {
       fontSize: '12px',
-      color: `#${pet.accentColor.toString(16)}`
+      color: `#${pet.accentColor.toString(16).padStart(6, '0')}`
     }).setOrigin(0.5);
 
     // 属性标签
@@ -353,6 +353,7 @@ export class PrologueScene extends Phaser.Scene {
       { label: '速度', value: pet.stats.speed, color: 0x22c55e }
     ];
 
+    const statElements: Phaser.GameObjects.GameObject[] = [];
     stats.forEach((stat, i) => {
       const statX = -60 + i * 60;
       
@@ -366,21 +367,21 @@ export class PrologueScene extends Phaser.Scene {
       barFill.fillStyle(stat.color, 0.8);
       barFill.fillRoundedRect(statX - 20, statsY + 15, (stat.value / 15) * 40, 6, 3);
       
-      this.add.text(statX, statsY, stat.label, {
+      const labelText = this.add.text(statX, statsY, stat.label, {
         fontSize: '10px',
         color: '#9ca3af'
       }).setOrigin(0.5);
       
-      this.add.text(statX, statsY + 28, stat.value.toString(), {
+      const valueText = this.add.text(statX, statsY + 28, stat.value.toString(), {
         fontSize: '12px',
         color: '#ffffff',
         fontStyle: 'bold'
       }).setOrigin(0.5);
 
-      card.add([barBg, barFill]);
+      statElements.push(barBg, barFill, labelText, valueText);
     });
 
-    card.add([bg, glow, portraitBg, petImage, nameText, titleText, typeBadge, typeText, desc]);
+    card.add([bg, glow, portraitBg, petImage, nameText, titleText, typeBadge, typeText, desc, ...statElements]);
     card.setSize(220, 360);
     card.setInteractive();
 
@@ -418,99 +419,111 @@ export class PrologueScene extends Phaser.Scene {
     });
   }
 
-  createPetPortrait(pet: StarterPet): Phaser.GameObjects.Graphics {
-    const g = this.add.graphics();
-    
+  drawPetPortrait(g: Phaser.GameObjects.Graphics, pet: StarterPet, offsetX: number, offsetY: number) {
     if (pet.id === 'shadow_wolf') {
       // 烬狼 - 黑狼形象，带火焰效果
+      // 火焰效果（先画，在底层）
+      g.fillStyle(0xff6b35, 0.6);
+      g.fillTriangle(offsetX - 35, offsetY + 15, offsetX - 50, offsetY - 25, offsetX - 20, offsetY + 5);
+      g.fillTriangle(offsetX + 35, offsetY + 15, offsetX + 50, offsetY - 25, offsetX + 20, offsetY + 5);
+      g.fillStyle(0xfbbf24, 0.5);
+      g.fillTriangle(offsetX - 30, offsetY + 20, offsetX - 42, offsetY - 15, offsetX - 18, offsetY + 8);
+      g.fillTriangle(offsetX + 30, offsetY + 20, offsetX + 42, offsetY - 15, offsetX + 18, offsetY + 8);
       // 身体
-      g.fillStyle(0x1a1a2e);
-      g.fillEllipse(0, 20, 60, 40);
+      g.fillStyle(0x2a2a3e);
+      g.fillEllipse(offsetX, offsetY + 25, 65, 45);
       // 头部
-      g.fillStyle(0x252540);
-      g.fillCircle(0, -10, 25);
+      g.fillStyle(0x353550);
+      g.fillCircle(offsetX, offsetY - 5, 28);
       // 耳朵
-      g.fillTriangle(-20, -25, -10, -45, -5, -20);
-      g.fillTriangle(20, -25, 10, -45, 5, -20);
+      g.fillStyle(0x2a2a3e);
+      g.fillTriangle(offsetX - 22, offsetY - 20, offsetX - 12, offsetY - 48, offsetX - 5, offsetY - 15);
+      g.fillTriangle(offsetX + 22, offsetY - 20, offsetX + 12, offsetY - 48, offsetX + 5, offsetY - 15);
       // 眼睛 - 燃烧的橙色
       g.fillStyle(0xff6b35);
-      g.fillCircle(-10, -12, 5);
-      g.fillCircle(10, -12, 5);
+      g.fillCircle(offsetX - 10, offsetY - 8, 6);
+      g.fillCircle(offsetX + 10, offsetY - 8, 6);
       g.fillStyle(0xffffff);
-      g.fillCircle(-8, -13, 2);
-      g.fillCircle(12, -13, 2);
-      // 火焰效果
-      g.fillStyle(0xff6b35, 0.8);
-      g.fillTriangle(-30, 10, -40, -20, -20, 0);
-      g.fillTriangle(30, 10, 40, -20, 20, 0);
-      g.fillStyle(0xfbbf24, 0.6);
-      g.fillTriangle(-25, 15, -35, -10, -15, 5);
-      g.fillTriangle(25, 15, 35, -10, 15, 5);
+      g.fillCircle(offsetX - 8, offsetY - 9, 2);
+      g.fillCircle(offsetX + 12, offsetY - 9, 2);
+      // 鼻子
+      g.fillStyle(0x1a1a2e);
+      g.fillCircle(offsetX, offsetY + 8, 4);
     } 
     else if (pet.id === 'storm_dragon') {
       // 霆龙 - 紫色小龙，带闪电
-      // 身体
-      g.fillStyle(0x4c1d95);
-      g.fillEllipse(0, 15, 50, 35);
-      // 头部
-      g.fillStyle(0x5b21b6);
-      g.fillCircle(0, -15, 22);
-      // 角
-      g.fillStyle(0xa855f7);
-      g.fillTriangle(-15, -30, -10, -50, -5, -25);
-      g.fillTriangle(15, -30, 10, -50, 5, -25);
-      // 眼睛
-      g.fillStyle(0xe9d5ff);
-      g.fillCircle(-8, -15, 6);
-      g.fillCircle(8, -15, 6);
-      g.fillStyle(0x7c3aed);
-      g.fillCircle(-8, -15, 3);
-      g.fillCircle(8, -15, 3);
+      // 闪电效果（底层）
+      g.lineStyle(3, 0xa855f7, 0.7);
+      g.lineBetween(offsetX - 45, offsetY - 35, offsetX - 32, offsetY - 10);
+      g.lineBetween(offsetX - 32, offsetY - 10, offsetX - 40, offsetY + 10);
+      g.lineBetween(offsetX + 45, offsetY - 30, offsetX + 35, offsetY - 5);
+      g.lineBetween(offsetX + 35, offsetY - 5, offsetX + 42, offsetY + 15);
       // 翅膀
       g.fillStyle(0x7c3aed, 0.7);
-      g.fillTriangle(-25, 0, -55, -20, -30, 25);
-      g.fillTriangle(25, 0, 55, -20, 30, 25);
-      // 闪电效果
-      g.lineStyle(3, 0xa855f7, 0.8);
-      g.lineBetween(-40, -30, -30, -10);
-      g.lineBetween(-30, -10, -35, 5);
-      g.lineBetween(40, -25, 32, -5);
-      g.lineBetween(32, -5, 38, 10);
+      g.fillTriangle(offsetX - 28, offsetY + 5, offsetX - 60, offsetY - 25, offsetX - 35, offsetY + 30);
+      g.fillTriangle(offsetX + 28, offsetY + 5, offsetX + 60, offsetY - 25, offsetX + 35, offsetY + 30);
+      // 身体
+      g.fillStyle(0x5b21b6);
+      g.fillEllipse(offsetX, offsetY + 20, 55, 40);
+      // 头部
+      g.fillStyle(0x6d28d9);
+      g.fillCircle(offsetX, offsetY - 12, 25);
+      // 角
+      g.fillStyle(0xa855f7);
+      g.fillTriangle(offsetX - 15, offsetY - 28, offsetX - 8, offsetY - 52, offsetX - 3, offsetY - 22);
+      g.fillTriangle(offsetX + 15, offsetY - 28, offsetX + 8, offsetY - 52, offsetX + 3, offsetY - 22);
+      // 眼睛
+      g.fillStyle(0xe9d5ff);
+      g.fillCircle(offsetX - 9, offsetY - 12, 7);
+      g.fillCircle(offsetX + 9, offsetY - 12, 7);
+      g.fillStyle(0x7c3aed);
+      g.fillCircle(offsetX - 9, offsetY - 12, 3);
+      g.fillCircle(offsetX + 9, offsetY - 12, 3);
+      // 小尾巴
+      g.fillStyle(0x5b21b6);
+      g.fillTriangle(offsetX, offsetY + 40, offsetX - 8, offsetY + 55, offsetX + 8, offsetY + 55);
     }
     else if (pet.id === 'ice_phoenix') {
       // 凰羽 - 冰蓝色凤凰
-      // 身体
-      g.fillStyle(0x0c4a6e);
-      g.fillEllipse(0, 15, 45, 30);
-      // 头部
-      g.fillStyle(0x0369a1);
-      g.fillCircle(0, -15, 20);
-      // 冠羽
-      g.fillStyle(0x38bdf8);
-      g.fillTriangle(0, -35, -8, -55, 8, -55);
-      g.fillTriangle(-10, -30, -20, -48, -5, -35);
-      g.fillTriangle(10, -30, 20, -48, 5, -35);
-      // 眼睛
-      g.fillStyle(0x7dd3fc);
-      g.fillCircle(-7, -15, 5);
-      g.fillCircle(7, -15, 5);
-      g.fillStyle(0x0c4a6e);
-      g.fillCircle(-7, -15, 2);
-      g.fillCircle(7, -15, 2);
-      // 翅膀
-      g.fillStyle(0x0ea5e9, 0.8);
-      g.fillTriangle(-22, 5, -60, -15, -35, 35);
-      g.fillTriangle(22, 5, 60, -15, 35, 35);
+      // 极光效果（底层）
+      g.fillStyle(0x7dd3fc, 0.2);
+      g.fillEllipse(offsetX, offsetY, 90, 70);
       // 尾羽
       g.fillStyle(0x38bdf8, 0.7);
-      g.fillTriangle(0, 30, -20, 60, 0, 50);
-      g.fillTriangle(0, 30, 20, 60, 0, 50);
-      g.fillTriangle(0, 30, -10, 55, 10, 55);
-      // 极光效果
-      g.fillStyle(0x7dd3fc, 0.3);
-      g.fillEllipse(0, 0, 80, 60);
+      g.fillTriangle(offsetX, offsetY + 30, offsetX - 25, offsetY + 65, offsetX, offsetY + 50);
+      g.fillTriangle(offsetX, offsetY + 30, offsetX + 25, offsetY + 65, offsetX, offsetY + 50);
+      g.fillTriangle(offsetX, offsetY + 35, offsetX - 12, offsetY + 60, offsetX + 12, offsetY + 60);
+      // 翅膀
+      g.fillStyle(0x0ea5e9, 0.8);
+      g.fillTriangle(offsetX - 25, offsetY + 8, offsetX - 65, offsetY - 18, offsetX - 40, offsetY + 38);
+      g.fillTriangle(offsetX + 25, offsetY + 8, offsetX + 65, offsetY - 18, offsetX + 40, offsetY + 38);
+      // 身体
+      g.fillStyle(0x0c4a6e);
+      g.fillEllipse(offsetX, offsetY + 18, 50, 35);
+      // 头部
+      g.fillStyle(0x0369a1);
+      g.fillCircle(offsetX, offsetY - 12, 22);
+      // 冠羽
+      g.fillStyle(0x38bdf8);
+      g.fillTriangle(offsetX, offsetY - 32, offsetX - 10, offsetY - 58, offsetX + 10, offsetY - 58);
+      g.fillTriangle(offsetX - 12, offsetY - 28, offsetX - 24, offsetY - 50, offsetX - 5, offsetY - 32);
+      g.fillTriangle(offsetX + 12, offsetY - 28, offsetX + 24, offsetY - 50, offsetX + 5, offsetY - 32);
+      // 眼睛
+      g.fillStyle(0x7dd3fc);
+      g.fillCircle(offsetX - 8, offsetY - 12, 6);
+      g.fillCircle(offsetX + 8, offsetY - 12, 6);
+      g.fillStyle(0x0c4a6e);
+      g.fillCircle(offsetX - 8, offsetY - 12, 2);
+      g.fillCircle(offsetX + 8, offsetY - 12, 2);
+      // 喙
+      g.fillStyle(0xfbbf24);
+      g.fillTriangle(offsetX, offsetY - 2, offsetX - 4, offsetY + 6, offsetX + 4, offsetY + 6);
     }
-    
+  }
+
+  createPetPortrait(pet: StarterPet): Phaser.GameObjects.Graphics {
+    const g = this.add.graphics();
+    this.drawPetPortrait(g, pet, 0, 0);
     return g;
   }
 
